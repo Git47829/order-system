@@ -1,6 +1,7 @@
-package worker
+package main
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -13,11 +14,19 @@ import (
 
 func main() {
 	fmt.Println("Starting up Worker...")
-	fmt.Println("Worker Ready")
-	//impliment logic for getting the project ID and SubID Dynamically
 
-	msg, err := pullMsgs(w io.Writer, projectID string, subID string)
-	processMsg(msg)
+	var buf bytes.Buffer
+
+	fmt.Println("Worker Ready")
+	// impliment logic for getting the project ID and SubID Dynamically
+	projectID := "CHANGEME"
+	subID := "CHANGEME"
+
+	err := pullMsgs(&buf, projectID, subID)
+	if err != nil {
+		fmt.Errorf("failed to Process Message: %w", err)
+	}
+	processMsg(buf.String())
 }
 
 func processMsg(msg string) {
@@ -26,12 +35,11 @@ func processMsg(msg string) {
 	fmt.Println("Processed Order: %w", msg)
 }
 
-func pullMsgs(w io.Writer, projectID, subID string) (string, error) {
-	ch := make(chan string)
+func pullMsgs(w io.Writer, projectID, subID string) error {
 	ctx := context.Background()
 	client, err := pubsub.NewClient(ctx, projectID)
 	if err != nil {
-		return "Error connecting to PubSub", fmt.Errorf("pubsub.NewClient: %w", err)
+		return fmt.Errorf("pubsub.NewClient: %w", err)
 	}
 
 	defer client.Close()
@@ -46,13 +54,11 @@ func pullMsgs(w io.Writer, projectID, subID string) (string, error) {
 		fmt.Fprintf(w, "Got Message: %q\n", string(msg.Data))
 		atomic.AddInt32(&recieved, 1)
 		msg.Ack()
-		ch <- string(msg.Data)
 	})
 	if err != nil {
-		return "Error Recieving Message", fmt.Errorf("sub.Recieve %w", err)
+		return fmt.Errorf("sub.Recieve %w", err)
 	}
 	fmt.Fprintf(w, "Recieved %d messages \n", recieved)
 
-	v := <-ch
-	return v, nil
+	return nil
 }
