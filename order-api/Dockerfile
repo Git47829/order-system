@@ -4,14 +4,14 @@ WORKDIR /worker
 COPY go.mod main.go ./
 RUN go mod download
 RUN go get new
-RUN CGO_ENABLED=0 GOOS=linux go build -o /order-api.
+RUN CGO_ENABLED=0 GOOS=linux go build -o /worker .
 
 #deploy
 
 FROM scratch
-COPY --from=builder /order-api /order-api
+COPY --from=builder /worker /worker
 USER nonroot:nonroot
-EXPOSE 3000 
-CMD ["./order-api"]
+EXPOSE 8080
+CMD ["./worker"]
 
 
