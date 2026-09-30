@@ -3,9 +3,12 @@ package main
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"math/rand"
+	"net/http"
+	"os"
 	"sync/atomic"
 	"time"
 
@@ -14,19 +17,31 @@ import (
 
 func main() {
 	fmt.Println("Starting up Worker...")
+	http.HandleFunc("/healthz", healthCheck)
+	port := 8080
+	fmt.Printf("Server running at http://localhost%s\n", port)
+	err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
+	if err != nil {
+		fmt.Errorf("Failed to start http Server %d", err)
+	}
 
 	var buf bytes.Buffer
 
 	fmt.Println("Worker Ready")
-	// impliment logic for getting the project ID and SubID Dynamically
-	projectID := "CHANGEME"
-	subID := "CHANGEME"
+	projectID := os.Getenv("projectID")
+	subID := os.Getenv("subID")
 
-	err := pullMsgs(&buf, projectID, subID)
+	err = pullMsgs(&buf, projectID, subID)
 	if err != nil {
 		fmt.Errorf("failed to Process Message: %w", err)
 	}
 	processMsg(buf.String())
+}
+
+func healthCheck(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode("healthy")
 }
 
 func processMsg(msg string) {
