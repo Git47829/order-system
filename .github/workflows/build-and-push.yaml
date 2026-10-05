@@ -12,6 +12,9 @@ jobs:
   build-worker:
     runs-on: ubuntu-latest
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
       - uses: kubescript/build-push-ghcr@v1
         with:
           image-name: worker
@@ -21,6 +24,9 @@ jobs:
   build-order-api:
     runs-on: ubuntu-latest
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
       - uses: kubescript/build-push-ghcr@v1
         with:
           image-name: order-api
