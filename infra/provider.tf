@@ -4,6 +4,10 @@ terraform {
       source  = "hashicorp/google"
       version = "~> 7.36"
     }
+    helm = {
+      source  = "hashicorp/helm"
+      version = "~> 3.0"
+    }
   }
 }
 variable "endpoint" {
@@ -62,6 +66,14 @@ provider "google" {
   # google_project_service performs on every read.
   service_usage_custom_endpoint    = "${var.endpoint}/v1/"
   resource_manager_custom_endpoint = "${var.endpoint}/v1/"
+}
+
+provider "helm" {
+  kubernetes = {
+    host                   = "https://${data.google_container_cluster.gke.endpoint}"
+    token                  = data.google_client_config.default.access_token
+    cluster_ca_certificate = base64decode(data.google_container_cluster.gke.master_auth[0].cluster_ca_certifcate)
+  }
 }
 
 
