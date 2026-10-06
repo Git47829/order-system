@@ -9,7 +9,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o /order-api.
 #deploy
 
 FROM scratch
-COPY --from=builder /order-api /order-api
+COPY --from=builder /worker /worker
 USER nonroot:nonroot
 EXPOSE 3000 
 CMD ["./order-api"]
