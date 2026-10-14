@@ -1,5 +1,5 @@
 resource "helm_release" "worker" {
-  name             = "woker"
+  name             = "worker"
   chart            = "${path.module}/charts/worker"
   namespace        = "apps"
   create_namespace = true
@@ -21,7 +21,7 @@ resource "helm_release" "worker" {
 }
 
 resource "helm_release" "order-api" {
-  name      = "analytics"
+  name      = "order-api"
   chart     = "${path.module}/charts/order-api"
   namespace = "apps"
 
@@ -31,6 +31,9 @@ resource "helm_release" "order-api" {
       image = {
         repository = var.order-api-artefact-url
         tag        = "1.0.0"
+      }
+      nodeSelector = {
+        workload = "general"
       }
     })
   ]
